@@ -24,18 +24,36 @@ const ChatMessage = ({ message, onFeedback }) => {
     }
 
     const citations = [];
+    const citationMap = new Map(); // Track unique citations and their numbers
     let citationCounter = 1;
     
     // Then, find and process citations in the HTML
     const processedText = htmlText.replace(/\[([^\]]+)\]/g, (match, citation) => {
-      const citationId = `msg${id}-ref${citationCounter}`;
-      citations.push({
-        id: citationId,
-        text: citation,
-        number: citationCounter
-      });
-      const result = `<sup><a href="#${citationId}" class="citation-link" style="color: #4ade80; text-decoration: none; font-weight: 500;">${citationCounter}</a></sup>`;
-      citationCounter++;
+      let citationNumber;
+      let citationId;
+      
+      // Check if this citation already exists
+      if (citationMap.has(citation)) {
+        // Use existing number for repeated citation
+        citationNumber = citationMap.get(citation);
+        citationId = `msg${id}-ref${citationNumber}`;
+      } else {
+        // New citation - assign new number
+        citationNumber = citationCounter;
+        citationId = `msg${id}-ref${citationNumber}`;
+        
+        // Store in map and citations array
+        citationMap.set(citation, citationNumber);
+        citations.push({
+          id: citationId,
+          text: citation,
+          number: citationNumber
+        });
+        
+        citationCounter++;
+      }
+      
+      const result = `<sup><a href="#${citationId}" class="citation-link" style="color: #4ade80; text-decoration: none; font-weight: 500;">${citationNumber}</a></sup>`;
       return result;
     });
 
@@ -100,8 +118,8 @@ const ChatMessage = ({ message, onFeedback }) => {
         <div className="max-w-xs lg:max-w-2xl w-full">
           {/* Avatar e mensagem do bot */}
           <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-gradient-to-br from-maria-green-400 to-maria-green-600 rounded-full flex items-center justify-center shadow-lg">
+            <div className="shrink-0">
+              <div className="w-8 h-8 bg-linear-to-br from-maria-green-400 to-maria-green-600 rounded-full flex items-center justify-center shadow-lg">
                 <span className="text-white text-sm font-medium">M</span>
               </div>
             </div>
